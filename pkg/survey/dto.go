@@ -9,9 +9,9 @@ import (
 
 type DTO struct {
 	Id        primitive.ObjectID `json:"_id" bson:"_id"`
-	Comment   string             `json:"comment" bson:"comment" validate:"required"`
-	Score     int                `json:"score" bson:"score" validate:"required,min=1,max=5"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at" validate:"required"`
+	Comment   string             `json:"comment" bson:"comment"`
+	Score     int                `json:"score" bson:"score" validate:"required,min=1,max=10"`
+	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 }
 
 var validate *validator.Validate

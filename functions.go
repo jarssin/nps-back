@@ -47,7 +47,12 @@ func CreateSurvey(w http.ResponseWriter, r *http.Request) {
 
 	var payload survey.DTO
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, "Invalid body", http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Invalid body: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	if err := payload.Validate(); err != nil {
+		http.Error(w, fmt.Sprintf("Validation error: %v", err), http.StatusBadRequest)
 		return
 	}
 
