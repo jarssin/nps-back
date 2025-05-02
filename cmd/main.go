@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	"nps-back/functions"
+	functions "nps-back"
 )
 
 func main() {
