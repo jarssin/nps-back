@@ -3,7 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
-	functions "nps-back"
+
+	functions "github.com/Jardessomonster/nps-back"
 )
 
 func main() {
@@ -11,6 +12,7 @@ func main() {
 
 	log.Println("Server running on http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)
+
 	if err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}

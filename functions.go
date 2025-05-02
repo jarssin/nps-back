@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"nps-back/internal/infra/database"
-	"nps-back/pkg/survey"
 	"os"
 	"time"
 
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/joho/godotenv"
+
+	"github.com/Jardessomonster/nps-back/internal/infra/database"
+	"github.com/Jardessomonster/nps-back/pkg/survey"
 )
 
 var (
@@ -17,14 +19,16 @@ var (
 )
 
 func init() {
-	err := godotenv.Load()
-	fmt.Println("MongoDB: ", os.Getenv("MONGODB_URL"))
+	functions.HTTP("CreateSurvey", CreateSurvey)
+
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
 
+	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
 	}
 
+	fmt.Println("MongoDB: ", os.Getenv("MONGODB_URL"))
 	connection, err := database.Connect()
 
 	if err != nil {

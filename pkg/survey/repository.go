@@ -2,7 +2,8 @@ package survey
 
 import (
 	"context"
-	"nps-back/internal/infra/database"
+
+	"github.com/Jardessomonster/nps-back/internal/infra/database"
 )
 
 type SurveyRepository struct {
