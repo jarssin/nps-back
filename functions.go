@@ -19,7 +19,7 @@ var (
 )
 
 func init() {
-	functions.HTTP("CreateSurvey", CreateSurvey)
+	functions.HTTP("CreateSurvey", corsMiddleware(CreateSurvey))
 
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
 
@@ -65,4 +65,19 @@ func CreateSurvey(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Survey created successfully",
 	})
+}
+
+func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next(w, r)
+	}
 }

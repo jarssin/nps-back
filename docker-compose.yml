@@ -1,0 +1,54 @@
+version: "3.8"
+
+# Gt0tAmFywGqSMLfx
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: nps-user
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # backend:
+  #   build:
+  #     context: ./nps-back
+  #     dockerfile: Dockerfile
+  #   container_name: nps-back
+  #   restart: always
+  #   depends_on:
+  #     - mongodb
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     MONGODB_URL: "mongodb://nps-user:password@mongodb"
+  #   networks:
+  #     - app-network
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    restart: always
+    ports:
+      - "3001:3000"
+    networks:
+      - app-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  app-network:
+    driver: bridge
