@@ -32,6 +32,12 @@ go mod tidy
 
 ## Usage
 
+Setup environment values
+
+```bash
+MONGODB_URL=your@mongodb/db
+```
+
 Run the application:
 
 ```bash
