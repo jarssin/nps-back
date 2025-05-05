@@ -11,6 +11,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/Jardessomonster/nps-back/internal/infra/database"
+	"github.com/Jardessomonster/nps-back/internal/infra/middlewares"
 	"github.com/Jardessomonster/nps-back/pkg/survey"
 )
 
@@ -19,7 +20,7 @@ var (
 )
 
 func init() {
-	functions.HTTP("CreateSurvey", corsMiddleware(CreateSurvey))
+	functions.HTTP("CreateSurvey", middlewares.CorsMiddleware(CreateSurvey))
 
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
 
@@ -65,19 +66,4 @@ func CreateSurvey(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Survey created successfully",
 	})
-}
-
-func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		next(w, r)
-	}
 }
