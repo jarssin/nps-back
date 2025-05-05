@@ -23,6 +23,7 @@ func (s *SurveyService) CreateSurvey(surveyData DTO) error {
 		Id:        primitive.NewObjectID(),
 		Comment:   surveyData.Comment,
 		Score:     surveyData.Score,
+		VisitorId: surveyData.VisitorId,
 		CreatedAt: time.Now(),
 	}
 

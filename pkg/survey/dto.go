@@ -11,7 +11,8 @@ type DTO struct {
 	Id        primitive.ObjectID `json:"_id" bson:"_id"`
 	Comment   string             `json:"comment" bson:"comment"`
 	Score     int                `json:"score" bson:"score" validate:"required,min=1,max=10"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
+	VisitorId string             `json:"visitorId" bson:"visitorId" validate:"required"`
+	CreatedAt time.Time          `json:"createdAt" bson:"createdAt"`
 }
 
 var validate *validator.Validate
