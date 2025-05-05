@@ -15,7 +15,7 @@ It's a simple backend project designed to run on a cloud function
 1. Clone the repository:
 
 ```bash
-git clone github.com/Jardessomonster/nps-back
+git clone https://github.com/Jardessomonster/nps-back
 ```
 
 2. Navigate to the project directory:
