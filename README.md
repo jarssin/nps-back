@@ -48,3 +48,18 @@ go build -o nps-back
 # Or use the make command
 make dev
 ```
+
+## Deployment
+
+Deploy the cloud function using the following command:
+
+```bash
+gcloud functions deploy create-survey \
+  --runtime=go121 \
+  --region=us-central1 \
+  --source=. \
+  --entry-point=CreateSurvey \
+  --trigger-http \
+  --allow-unauthenticated \
+  --set-env-vars=MONGODB_URL=""
+```
