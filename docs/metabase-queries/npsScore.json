@@ -1,0 +1,98 @@
+[
+  {
+      "$addFields": {
+        "filtro_inicio_utc": {
+          "$dateAdd": {
+            "startDate": {{ data_inicio }},
+            "unit": "hour",
+            "amount": 5  
+          }
+        },
+        "filtro_fim_utc": {
+          "$dateAdd": {
+            "startDate": {{ data_fim }},
+            "unit": "hour",
+            "amount": 29 
+          }
+        }
+      }
+    },
+    {
+      "$match": {
+        "$expr": {
+          "$and": [
+            { "$gte": ["$createdAt", "$filtro_inicio_utc"] },
+            { "$lte": ["$createdAt", "$filtro_fim_utc"] }
+          ]
+        }
+      }
+    },
+    {
+       $group: {
+           _id: {
+             $switch: {
+                 branches: [
+                     { 
+                       case: { $gte: ["$score", 9] }, 
+                       then: "promotores"
+                     },
+                     {
+                         case: { $lte: ["$score", 6] },
+                         then: "detratores"
+                     }
+                 ],
+                 default: "neutros"
+             }
+           },
+           totalCount: { $sum: 1 }
+       }
+    },
+    {
+     $group: {
+       _id: null,
+       counts: {
+         $push: {
+           k: "$_id",
+           v: "$totalCount"
+         }
+       }
+     }
+   },
+   {
+     $replaceRoot: {
+       newRoot: {
+         $arrayToObject: "$counts"
+       }
+     }
+   },
+   {
+     $addFields: {
+       total: {
+         $add: [
+           { $ifNull: ["$promotores", 0] },
+           { $ifNull: ["$neutros", 0] },
+           { $ifNull: ["$detratores", 0] }
+         ]
+       }
+     }
+   },
+   {
+     $project: {
+       nps: {
+         $multiply: [
+           {
+             $divide: [
+               { $subtract: [
+                 "$promotores",
+                 "$detratores"
+               ]},
+               "$total"
+             ]
+           },
+           100
+         ]
+       }
+     }
+   }
+  ]
+  

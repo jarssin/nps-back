@@ -1,0 +1,39 @@
+[
+  {
+      "$addFields": {
+        "filtro_inicio_utc": {
+          "$dateAdd": {
+            "startDate": {{ data_inicio }},
+            "unit": "hour",
+            "amount": 5  
+          }
+        },
+        "filtro_fim_utc": {
+          "$dateAdd": {
+            "startDate": {{ data_fim }},
+            "unit": "hour",
+            "amount": 29 
+          }
+        }
+      }
+    },
+    {
+      "$match": {
+        "$expr": {
+          "$and": [
+            { "$gte": ["$createdAt", "$filtro_inicio_utc"] },
+            { "$lte": ["$createdAt", "$filtro_fim_utc"] }
+          ]
+        }
+      }
+    },
+    {
+      "$group": {
+        "_id": "$visitorId",
+        "count": { "$sum": 1 }
+      }
+    },
+    {
+      "$sort": { "count": -1 }
+    }
+  ]

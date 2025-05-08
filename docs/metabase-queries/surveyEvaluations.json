@@ -1,0 +1,111 @@
+[
+  {
+      "$addFields": {
+        "filtro_inicio_utc": {
+          "$dateAdd": {
+            "startDate": {{ data_inicio }},
+            "unit": "hour",
+            "amount": 5  
+          }
+        },
+        "filtro_fim_utc": {
+          "$dateAdd": {
+            "startDate": {{ data_fim }},
+            "unit": "hour",
+            "amount": 29 
+          }
+        }
+      }
+    },
+  {
+    "$match": {
+      "$expr": {
+        "$and": [
+          { "$gte": ["$createdAt", "$filtro_inicio_utc"] },
+          { "$lte": ["$createdAt", "$filtro_fim_utc"] }
+        ]
+      }
+    }
+  },
+  {
+    "$match": {
+      "$expr": {
+        "$switch": {
+          "branches": [
+            {
+              "case": { "$eq": [{{ comment }}, "Sem"] },
+              "then": {
+                "$or": [
+                  { "$eq": ["$comment", null] },
+                  { "$eq": ["$comment", ""] }
+                ]
+              }
+            },
+            {
+              "case": { "$eq": [{{ comment }}, "Com"] },
+              "then": {
+                "$and": [
+                  { "$ne": ["$comment", null] },
+                  { "$ne": ["$comment", ""] }
+                ]
+              }
+            }
+          ],
+          "default": true
+        }
+      }
+    }
+  },
+  {
+    "$match": {
+      "$expr": {
+        "$switch": {
+          "branches": [
+            {
+              "case": { "$eq": [{{ response_type }}, "Promotor"] },
+              "then": {
+                "$gte": ["$score", 9]
+              }
+            },
+            {
+              "case": { "$eq": [{{ response_type }}, "Detrator"] },
+              "then": {
+                "$lte": ["$score", 6]
+              }
+            },
+            {
+              "case": { "$eq": [{{ response_type }}, "Neutro"] },
+              "then": {
+                "$and": [
+                  { "$gte": ["$score", 7] },
+                  { "$lte": ["$score", 8] }
+                ]
+              }
+            }
+          ],
+          "default": true
+        }
+      }
+    }
+  },
+  {
+    "$sort": {
+      "createdAt": -1
+    }
+  },
+  {
+    "$project": {
+      "_id": false,
+      "ID do visitante": "$visitorId",
+      "comentário": "$comment",
+      "nota": "$score",
+      "data da avaliação": {
+        "$dateToString": {
+          "format": "%Y-%m-%d %H:%M:%S",
+          "date": "$createdAt",
+          "timezone": "America/Rio_Branco"
+        }
+      }
+    }
+  }
+]

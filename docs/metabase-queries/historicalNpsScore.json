@@ -1,0 +1,111 @@
+[
+  {
+    "$addFields": {
+      "filtro_inicio_utc": {
+        "$dateAdd": {
+          "startDate": {{ data_inicio }},
+          "unit": "hour",
+          "amount": 5  
+        }
+      },
+      "filtro_fim_utc": {
+        "$dateAdd": {
+          "startDate": {{ data_fim }},
+          "unit": "hour",
+          "amount": 29 
+        }
+      }
+    }
+  },
+  {
+    "$match": {
+      "$expr": {
+        "$and": [
+          { "$gte": ["$createdAt", "$filtro_inicio_utc"] },
+          { "$lte": ["$createdAt", "$filtro_fim_utc"] }
+        ]
+      }
+    }
+  },
+  {
+    "$addFields": {
+      "date": {
+        "$dateToString": {
+          "format": "%Y-%m-%d",
+          "date": "$createdAt",
+          "timezone": "America/Rio_Branco"
+        }
+      }
+    }
+  },
+  {
+    "$project": {
+      "date": 1,
+      "promoter": {
+        "$cond": [{ "$gte": ["$score", 9] }, 1, 0]
+      },
+      "detractor": {
+        "$cond": [{ "$lte": ["$score", 6] }, 1, 0],
+      },
+      "count": { "$literal": 1 }
+    }
+  },
+  {
+    "$group": {
+      "_id": "$date",
+      "promoters": { "$sum": "$promoter" },
+      "detractors": { "$sum": "$detractor" },
+      "total": { "$sum": "$count" }
+    }
+  },
+  {
+    "$sort": { "_id": 1 }
+  },
+  {
+    "$setWindowFields": {
+      "sortBy": { "_id": 1 },
+      "output": {
+        "cumulative_promoters": {
+          "$sum": "$promoters",
+          "window": { "documents": ["unbounded", "current"] }
+        },
+        "cumulative_detractors": {
+          "$sum": "$detractors",
+          "window": { "documents": ["unbounded", "current"] }
+        },
+        "cumulative_total": {
+          "$sum": "$total",
+          "window": { "documents": ["unbounded", "current"] }
+        }
+      }
+    }
+  },
+  {
+    "$project": {
+      "data": "$_id",
+      "_id": 0,
+      "nps": {
+        "$cond": [
+          { "$gt": ["$cumulative_total", 0] },
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$cumulative_promoters",
+                      "$cumulative_detractors"
+                    ]
+                  },
+                  "$cumulative_total"
+                ]
+              },
+              100
+            ]
+          },
+          0
+        ]
+      }
+    }
+  }
+]

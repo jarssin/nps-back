@@ -1,0 +1,59 @@
+[
+  {
+      "$addFields": {
+        "filtro_inicio_utc": {
+          "$dateAdd": {
+            "startDate": {{ data_inicio }},
+            "unit": "hour",
+            "amount": 5  
+          }
+        },
+        "filtro_fim_utc": {
+          "$dateAdd": {
+            "startDate": {{ data_fim }},
+            "unit": "hour",
+            "amount": 29 
+          }
+        }
+      }
+    },
+    {
+      "$match": {
+        "$expr": {
+          "$and": [
+            { "$gte": ["$createdAt", "$filtro_inicio_utc"] },
+            { "$lte": ["$createdAt", "$filtro_fim_utc"] }
+          ]
+        }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $switch: {
+            branches: [
+              { case: { $gte: ["$score", 9] }, then: "promotores" },
+              { case: { $lte: ["$score", 6] }, then: "detratores" },
+              {
+                case: {
+                  $and: [
+                    { $gte: ["$score", 7] },
+                    { $lte: ["$score", 8] }
+                  ]
+                },
+                then: "neutros"
+              }
+            ],
+            default: "outros"
+          }
+        },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $match: {
+        _id: { $in: ["promotores", "detratores", "neutros"] }
+      }
+    }
+  ]
+  
