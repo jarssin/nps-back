@@ -77,22 +77,30 @@
      }
    },
    {
-     $project: {
-       nps: {
-         $multiply: [
-           {
-             $divide: [
-               { $subtract: [
-                 "$promotores",
-                 "$detratores"
-               ]},
-               "$total"
-             ]
-           },
-           100
-         ]
-       }
-     }
-   }
+    $project: {
+      nps: {
+        $cond: [
+          { $eq: ["$total", 0] },
+          null,
+          {
+            $multiply: [
+              {
+                $divide: [
+                  {
+                    $subtract: [
+                      { $ifNull: ["$promotores", 0] },
+                      { $ifNull: ["$detratores", 0] }
+                    ]
+                  },
+                  "$total"
+                ]
+              },
+              100
+            ]
+          }
+        ]
+      }
+    }
+  }
   ]
   
