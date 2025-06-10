@@ -8,11 +8,13 @@ import (
 )
 
 type DTO struct {
-	Id        primitive.ObjectID `json:"_id" bson:"_id"`
-	Comment   string             `json:"comment" bson:"comment"`
-	Score     int                `json:"score" bson:"score" validate:"required,min=1,max=10"`
-	VisitorId string             `json:"visitorId" bson:"visitorId" validate:"required"`
-	CreatedAt time.Time          `json:"createdAt" bson:"createdAt"`
+	Id                 primitive.ObjectID `json:"_id" bson:"_id"`
+	Comment            string             `json:"comment" bson:"comment"`
+	Score              int                `json:"score" bson:"score" validate:"required,min=1,max=10"`
+	VisitorId          string             `json:"visitorId" bson:"visitorId" validate:"required"`
+	Phone              string             `json:"phone" bson:"phone"`
+	JourneyEvaluations map[string]bool    `json:"journeyEvaluations" bson:"journeyEvaluations"`
+	CreatedAt          time.Time          `json:"createdAt" bson:"createdAt"`
 }
 
 var validate *validator.Validate

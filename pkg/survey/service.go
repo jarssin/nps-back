@@ -20,11 +20,13 @@ func NewSurveyService(surveyRepository SurveyRepositoryI) SurveyServiceI {
 
 func (s *SurveyService) CreateSurvey(surveyData DTO) error {
 	survey := DTO{
-		Id:        primitive.NewObjectID(),
-		Comment:   surveyData.Comment,
-		Score:     surveyData.Score,
-		VisitorId: surveyData.VisitorId,
-		CreatedAt: time.Now(),
+		Id:                 primitive.NewObjectID(),
+		Comment:            surveyData.Comment,
+		Score:              surveyData.Score,
+		VisitorId:          surveyData.VisitorId,
+		Phone:              surveyData.Phone,
+		JourneyEvaluations: surveyData.JourneyEvaluations,
+		CreatedAt:          time.Now(),
 	}
 
 	return s.surveyRepository.CreateSurvey(survey)
