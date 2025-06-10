@@ -15,7 +15,7 @@ It's a simple backend project designed to run on a cloud function
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/Jardessomonster/nps-back
+git clone https://github.com/jarssin/nps-back
 ```
 
 2. Navigate to the project directory:
@@ -55,7 +55,7 @@ Deploy the cloud function using the following command:
 
 ```bash
 gcloud functions deploy create-survey \
-  --runtime=go121 \
+  --runtime=go123 \
   --region=us-central1 \
   --source=. \
   --entry-point=CreateSurvey \
