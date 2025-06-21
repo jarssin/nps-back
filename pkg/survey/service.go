@@ -2,6 +2,7 @@ package survey
 
 import (
 	"fmt"
+	"log"
 )
 
 type SurveyServiceI interface {
@@ -22,12 +23,14 @@ func (s *SurveyService) CreateSurvey(surveyType string, payload any) error {
 	case "nps":
 		err := s.npsService.CreateSurvey(payload)
 		if err != nil {
+			log.Printf("error creating NPS survey: %v", err)
 			return fmt.Errorf("error creating survey: %v", err)
 		}
 		return nil
 	case "csat":
 		err := s.csatService.CreateSurvey(payload)
 		if err != nil {
+			log.Printf("error creating CSAT survey: %v", err)
 			return fmt.Errorf("error creating survey: %v", err)
 		}
 		return nil

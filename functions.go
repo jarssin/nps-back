@@ -3,6 +3,7 @@ package functions
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -29,14 +30,14 @@ func init() {
 
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		log.Println("Error loading .env file")
 	}
 
-	fmt.Println("MongoDB: ", os.Getenv("MONGODB_URL"))
+	log.Println("MongoDB: ", os.Getenv("MONGODB_URL"))
 	connection, err := database.Connect()
 
 	if err != nil {
-		fmt.Printf("failed to create MongoDB client: %e", err)
+		log.Printf("failed to create MongoDB client: %e", err)
 	}
 
 	npsRepository := nps.NewSurveyRepository(connection)
@@ -57,7 +58,7 @@ func CreateSurvey(w http.ResponseWriter, r *http.Request) {
 
 	params := r.URL.Query()
 	surveyType := params.Get("type")
-	fmt.Printf("Received survey type: %s\n", surveyType)
+	log.Printf("Received survey type: %s\n", surveyType)
 
 	surveyService := survey.NewSurveyService(npsService, csatService)
 
@@ -84,6 +85,7 @@ func CreateSurvey(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	log.Printf("Survey of type %s created successfully\n", surveyType)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Survey created successfully",

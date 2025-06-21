@@ -2,6 +2,7 @@ package nps
 
 import (
 	"fmt"
+	"log"
 )
 
 type SurveyService struct {
@@ -15,11 +16,13 @@ func NewSurveyService(surveyRepository SurveyRepositoryI) *SurveyService {
 func (s *SurveyService) CreateSurvey(npsPayload any) error {
 	npsToCreate, ok := npsPayload.(ToCreateDTO)
 	if !ok {
+		log.Println("Invalid NPS payload type")
 		return fmt.Errorf("invalid NPS payload type")
 	}
 
 	npsDTO := npsToCreate.ToDTO()
 	if err := npsDTO.Validate(); err != nil {
+		log.Println("Validation error:", err)
 		return fmt.Errorf("validation error: %v", err)
 	}
 
