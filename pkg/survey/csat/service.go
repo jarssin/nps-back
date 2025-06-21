@@ -1,9 +1,7 @@
 package csat
 
 import (
-	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"fmt"
 )
 
 type SurveyService struct {
@@ -14,16 +12,17 @@ func NewSurveyService(surveyRepository SurveyRepositoryI) *SurveyService {
 	return &SurveyService{surveyRepository: surveyRepository}
 }
 
-func (s *SurveyService) CreateSurvey(surveyData DTO) error {
-	survey := DTO{
-		Id:                 primitive.NewObjectID(),
-		Comment:            surveyData.Comment,
-		VisitorId:          surveyData.VisitorId,
-		Name:               surveyData.Name,
-		Phone:              surveyData.Phone,
-		JourneyEvaluations: surveyData.JourneyEvaluations,
-		CreatedAt:          time.Now(),
+func (s *SurveyService) CreateSurvey(csatPayload any) error {
+	csatToCreate, ok := csatPayload.(ToCreateDTO)
+	if !ok {
+		return fmt.Errorf("invalid CSAT payload type")
 	}
 
-	return s.surveyRepository.CreateSurvey(survey)
+	csatDTO := csatToCreate.ToDTO()
+	if err := csatDTO.Validate(); err != nil {
+		fmt.Println("Validation error:", err)
+		return fmt.Errorf("validation error: %v", err)
+	}
+
+	return s.surveyRepository.CreateSurvey(csatDTO)
 }

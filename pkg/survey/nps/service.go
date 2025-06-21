@@ -1,9 +1,7 @@
 package nps
 
 import (
-	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"fmt"
 )
 
 type SurveyService struct {
@@ -14,16 +12,16 @@ func NewSurveyService(surveyRepository SurveyRepositoryI) *SurveyService {
 	return &SurveyService{surveyRepository: surveyRepository}
 }
 
-func (s *SurveyService) CreateSurvey(surveyData DTO) error {
-	survey := DTO{
-		Id:                 primitive.NewObjectID(),
-		Comment:            surveyData.Comment,
-		Score:              surveyData.Score,
-		VisitorId:          surveyData.VisitorId,
-		Phone:              surveyData.Phone,
-		JourneyEvaluations: surveyData.JourneyEvaluations,
-		CreatedAt:          time.Now(),
+func (s *SurveyService) CreateSurvey(npsPayload any) error {
+	npsToCreate, ok := npsPayload.(ToCreateDTO)
+	if !ok {
+		return fmt.Errorf("invalid NPS payload type")
 	}
 
-	return s.surveyRepository.CreateSurvey(survey)
+	npsDTO := npsToCreate.ToDTO()
+	if err := npsDTO.Validate(); err != nil {
+		return fmt.Errorf("validation error: %v", err)
+	}
+
+	return s.surveyRepository.CreateSurvey(npsDTO)
 }

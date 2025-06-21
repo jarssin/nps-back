@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	npsService  survey.SurveyServiceI[nps.DTO]
-	csatService survey.SurveyServiceI[csat.DTO]
+	npsService  survey.SurveyServiceI
+	csatService survey.SurveyServiceI
 )
 
 func init() {
@@ -59,6 +59,8 @@ func CreateSurvey(w http.ResponseWriter, r *http.Request) {
 	surveyType := params.Get("type")
 	fmt.Printf("Received survey type: %s\n", surveyType)
 
+	surveyService := survey.NewSurveyService(npsService, csatService)
+
 	switch surveyType {
 	case "nps", "":
 		if err := json.NewDecoder(r.Body).Decode(&npsPayload); err != nil {
@@ -66,7 +68,7 @@ func CreateSurvey(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if _, _, err := survey.NewSurveyService(npsService, csatService).CreateSurvey(surveyType, npsPayload); err != nil {
+		if err := surveyService.CreateSurvey(surveyType, npsPayload); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -76,7 +78,7 @@ func CreateSurvey(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if _, _, err := survey.NewSurveyService(npsService, csatService).CreateSurvey(surveyType, csatPayload); err != nil {
+		if err := surveyService.CreateSurvey(surveyType, csatPayload); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
