@@ -1,4 +1,4 @@
-module github.com/Jardessomonster/nps-back
+module github.com/jarssin/nps-back
 
 go 1.23.4
 

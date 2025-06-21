@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	functions "github.com/Jardessomonster/nps-back"
-	"github.com/Jardessomonster/nps-back/internal/infra/middlewares"
+	functions "github.com/jarssin/nps-back"
+	"github.com/jarssin/nps-back/internal/infra/middlewares"
 )
 
 func main() {

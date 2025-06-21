@@ -10,13 +10,16 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/joho/godotenv"
 
-	"github.com/Jardessomonster/nps-back/internal/infra/database"
-	"github.com/Jardessomonster/nps-back/internal/infra/middlewares"
-	"github.com/Jardessomonster/nps-back/pkg/survey"
+	"github.com/jarssin/nps-back/internal/infra/database"
+	"github.com/jarssin/nps-back/internal/infra/middlewares"
+	"github.com/jarssin/nps-back/pkg/survey"
+	"github.com/jarssin/nps-back/pkg/survey/csat"
+	"github.com/jarssin/nps-back/pkg/survey/nps"
 )
 
 var (
-	surveyService survey.SurveyServiceI
+	npsService  survey.SurveyServiceI[nps.DTO]
+	csatService survey.SurveyServiceI[csat.DTO]
 )
 
 func init() {
@@ -36,8 +39,11 @@ func init() {
 		fmt.Printf("failed to create MongoDB client: %e", err)
 	}
 
-	surveyRepository := survey.NewSurveyRepository(connection)
-	surveyService = survey.NewSurveyService(surveyRepository)
+	npsRepository := nps.NewSurveyRepository(connection)
+	npsService = nps.NewSurveyService(npsRepository)
+
+	csatRepository := csat.NewSurveyRepository(connection)
+	csatService = csat.NewSurveyService(csatRepository)
 }
 
 func CreateSurvey(w http.ResponseWriter, r *http.Request) {
@@ -46,20 +52,34 @@ func CreateSurvey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload survey.DTO
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, fmt.Sprintf("Invalid body: %v", err), http.StatusBadRequest)
-		return
-	}
+	var npsPayload nps.ToCreateDTO
+	var csatPayload csat.ToCreateDTO
 
-	if err := payload.Validate(); err != nil {
-		http.Error(w, fmt.Sprintf("Validation error: %v", err), http.StatusBadRequest)
-		return
-	}
+	params := r.URL.Query()
+	surveyType := params.Get("type")
+	fmt.Printf("Received survey type: %s\n", surveyType)
 
-	if err := surveyService.CreateSurvey(payload); err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
+	switch surveyType {
+	case "nps", "":
+		if err := json.NewDecoder(r.Body).Decode(&npsPayload); err != nil {
+			http.Error(w, fmt.Sprintf("Error decoding request body: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		if _, _, err := survey.NewSurveyService(npsService, csatService).CreateSurvey(surveyType, npsPayload); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	case "csat":
+		if err := json.NewDecoder(r.Body).Decode(&csatPayload); err != nil {
+			http.Error(w, fmt.Sprintf("Error decoding request body: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		if _, _, err := survey.NewSurveyService(npsService, csatService).CreateSurvey(surveyType, csatPayload); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusCreated)
