@@ -99,6 +99,7 @@
       "ID do visitante": "$visitorId",
       "comentário": "$comment",
       "nota": "$score",
+      "journeyEvaluations": "$journeyEvaluations",
       "data da avaliação": {
         "$dateToString": {
           "format": "%Y-%m-%d %H:%M:%S",

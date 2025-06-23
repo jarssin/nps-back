@@ -1,9 +1,9 @@
-package survey
+package nps
 
 import (
 	"context"
 
-	"github.com/Jardessomonster/nps-back/internal/infra/database"
+	"github.com/jarssin/nps-back/internal/infra/database"
 )
 
 type SurveyRepository struct {
@@ -19,6 +19,6 @@ func NewSurveyRepository(db *database.MongoDB) SurveyRepositoryI {
 }
 
 func (r *SurveyRepository) CreateSurvey(survey DTO) error {
-	_, err := r.db.Collection("surveys").InsertOne(context.Background(), survey)
+	_, err := r.db.Collection("nps").InsertOne(context.Background(), survey)
 	return err
 }

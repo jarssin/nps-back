@@ -1,33 +1,40 @@
 package survey
 
 import (
-	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"fmt"
+	"log"
 )
 
-type SurveyService struct {
-	surveyRepository SurveyRepositoryI
-}
-
 type SurveyServiceI interface {
-	CreateSurvey(survey DTO) error
+	CreateSurvey(surveyData any) error
 }
 
-func NewSurveyService(surveyRepository SurveyRepositoryI) SurveyServiceI {
-	return &SurveyService{surveyRepository: surveyRepository}
+type SurveyService struct {
+	npsService  SurveyServiceI
+	csatService SurveyServiceI
 }
 
-func (s *SurveyService) CreateSurvey(surveyData DTO) error {
-	survey := DTO{
-		Id:                 primitive.NewObjectID(),
-		Comment:            surveyData.Comment,
-		Score:              surveyData.Score,
-		VisitorId:          surveyData.VisitorId,
-		Phone:              surveyData.Phone,
-		JourneyEvaluations: surveyData.JourneyEvaluations,
-		CreatedAt:          time.Now(),
+func NewSurveyService(npsService SurveyServiceI, csatService SurveyServiceI) *SurveyService {
+	return &SurveyService{npsService, csatService}
+}
+
+func (s *SurveyService) CreateSurvey(surveyType string, payload any) error {
+	switch surveyType {
+	case "nps":
+		err := s.npsService.CreateSurvey(payload)
+		if err != nil {
+			log.Printf("error creating NPS survey: %v", err)
+			return fmt.Errorf("error creating survey: %v", err)
+		}
+		return nil
+	case "csat":
+		err := s.csatService.CreateSurvey(payload)
+		if err != nil {
+			log.Printf("error creating CSAT survey: %v", err)
+			return fmt.Errorf("error creating survey: %v", err)
+		}
+		return nil
+	default:
+		return fmt.Errorf("invalid survey type")
 	}
-
-	return s.surveyRepository.CreateSurvey(survey)
 }
