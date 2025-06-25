@@ -8,7 +8,7 @@ It's a simple backend project designed to run on a cloud function
 
 ## Features
 
-- Stores a submited survey
+- Stores a submited survey [NPS/CSAT]
 
 ## Installation
 

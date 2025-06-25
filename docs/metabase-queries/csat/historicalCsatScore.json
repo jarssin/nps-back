@@ -1,0 +1,109 @@
+[
+  {
+    $addFields: {
+      filtro_inicio_utc: { $dateAdd: { startDate: {
+            {data_inicio
+            }
+          }, unit: "hour", amount: 5
+        }
+      },
+      filtro_fim_utc: { $dateAdd: { startDate: {
+            {data_fim
+            }
+          },    unit: "hour", amount: 29
+        }
+      }
+    }
+  },
+  {
+    $match: {
+      $expr: {
+        $and: [
+          { $gte: [
+              "$createdAt",
+              "$filtro_inicio_utc"
+            ]
+          },
+          { $lt: [
+              "$createdAt",
+              "$filtro_fim_utc"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  { $addFields: { notasArray: { $objectToArray: "$journeyEvaluations"
+      }
+    }
+  },
+  { $addFields: { csat_visita: { $avg: "$notasArray.v"
+      }
+    }
+  },
+  { $sort: { createdAt: 1
+    }
+  },
+  {
+    $setWindowFields: {
+      sortBy: { createdAt: 1
+      },
+      output: {
+        soma_csat: { $sum: "$csat_visita", window: { documents: [
+              "unbounded",
+              "current"
+            ]
+          }
+        },
+        total_resp: { $sum: 1,             window: { documents: [
+              "unbounded",
+              "current"
+            ]
+          }
+        }
+      }
+    }
+  },
+  { $addFields: { csat_acumulado: { $divide: [
+          "$soma_csat",
+          "$total_resp"
+        ]
+      }
+    }
+  },
+  {
+    $addFields: {
+      dia: {
+        $dateTrunc: {
+          date: "$createdAt",
+          unit: "day",
+          timezone: "America/Rio_Branco"
+        }
+      }
+    }
+  },
+  {
+    $group: {
+      _id: "$dia",
+      csat_acumulado: { $last: "$csat_acumulado"
+      },
+      respostas: { $last: "$total_resp"
+      }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      date: "$_id",
+      csat_acumulado: { $round: [
+          "$csat_acumulado",
+          2
+        ]
+      },
+      respostas: 1
+    }
+  },
+  { $sort: { date: 1
+    }
+  }
+]

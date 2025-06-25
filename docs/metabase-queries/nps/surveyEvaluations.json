@@ -1,22 +1,22 @@
 [
   {
-      "$addFields": {
-        "filtro_inicio_utc": {
-          "$dateAdd": {
-            "startDate": {{ data_inicio }},
-            "unit": "hour",
-            "amount": 5  
-          }
-        },
-        "filtro_fim_utc": {
-          "$dateAdd": {
-            "startDate": {{ data_fim }},
-            "unit": "hour",
-            "amount": 29 
-          }
+    "$addFields": {
+      "filtro_inicio_utc": {
+        "$dateAdd": {
+          "startDate": {{ data_inicio }},
+          "unit": "hour",
+          "amount": 5
+        }
+      },
+      "filtro_fim_utc": {
+        "$dateAdd": {
+          "startDate": {{ data_fim }},
+          "unit": "hour",
+          "amount": 29
         }
       }
-    },
+    }
+  },
   {
     "$match": {
       "$expr": {
@@ -94,13 +94,40 @@
     }
   },
   {
+    "$addFields": {
+      "journey_CustoBeneficio": {
+        "$cond": [{ "$ifNull": ["$journeyEvaluations.Custo benefício", false] }, "Gostei", "Não gostei"]
+      },
+      "journey_Variedade": {
+        "$cond": [{ "$ifNull": ["$journeyEvaluations.Variedade", false] }, "Gostei", "Não gostei"]
+      },
+      "journey_TempoEspera": {
+        "$cond": [{ "$ifNull": ["$journeyEvaluations.Tempo de espera", false] }, "Gostei", "Não gostei"]
+      },
+      "journey_Caixa": {
+        "$cond": [{ "$ifNull": ["$journeyEvaluations.Atendimento do Caixa", false] }, "Gostei", "Não gostei"]
+      },
+      "journey_Pagamento": {
+        "$cond": [{ "$ifNull": ["$journeyEvaluations.Formas de Pagamento", false] }, "Gostei", "Não gostei"]
+      },
+      "journey_Vendedor": {
+        "$cond": [{ "$ifNull": ["$journeyEvaluations.Atendimento do Vendedor", false] }, "Gostei", "Não gostei"]
+      }
+    }
+  },
+  {
     "$project": {
       "_id": false,
       "ID do visitante": "$visitorId",
       "comentário": "$comment",
       "nota": "$score",
-      "journeyEvaluations": "$journeyEvaluations",
-      "data da avaliação": {
+      "Custo Beneficio": "$journey_CustoBeneficio",
+      "Variedade": "$journey_Variedade",
+      "Tempo de Espera": "$journey_TempoEspera",
+      "Atendimento do Caixa": "$journey_Caixa",
+      "Formas de Pagamento": "$journey_Pagamento",
+      "Atendimento do Vendedor": "$journey_Vendedor",
+      "data da Avaliação": {
         "$dateToString": {
           "format": "%Y-%m-%d %H:%M:%S",
           "date": "$createdAt",

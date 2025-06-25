@@ -1,0 +1,52 @@
+[
+  {
+    "$match": {
+      "createdAt": {
+        "$gte": {{data_inicio}},
+        "$lte": {{data_fim}}
+      }
+    }
+  },
+  {
+    "$project": {
+      "createdAt": 1,
+      "journeys": { "$objectToArray": "$journeyEvaluations" }
+    }
+  },
+  { "$unwind": "$journeys" },
+  {
+    "$addFields": {
+      "journey": "$journeys.k",   
+      "answer":  "$journeys.v"   
+    }
+  },
+  {
+    "$group": {
+      "_id": {
+        "date": {
+          "$dateTrunc": {
+            "date": "$createdAt",
+            "unit": "day",
+            "timezone": "America/Rio_Branco"
+          }
+        },
+        "journey": "$journey"
+      },
+
+      "likes":    { "$sum": { "$cond": [{ "$eq": ["$answer", true]  }, 1, 0] } },
+      "dislikes": { "$sum": { "$cond": [{ "$eq": ["$answer", false] }, 1, 0] } },
+      "answered": { "$sum": { "$cond": [{ "$ne": ["$answer", null] }, 1, 0] } }
+    }
+  },
+  {
+    "$project": {
+      "_id":        0,
+      "date":       "$_id.date",
+      "journey":    "$_id.journey",
+      "likes":      1,
+      "dislikes":   1,
+      "answered":   1
+    }
+  },
+  { "$sort": { "date": 1, "journey": 1 } }
+]

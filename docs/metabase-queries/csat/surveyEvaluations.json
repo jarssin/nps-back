@@ -1,0 +1,198 @@
+[
+  {
+    "$addFields": {
+      "filtro_inicio_utc": {
+        "$dateAdd": {
+          "startDate": {
+            { data_inicio
+            }
+          },
+          "unit": "hour",
+          "amount": 5
+        }
+      },
+      "filtro_fim_utc": {
+        "$dateAdd": {
+          "startDate": {
+            { data_fim
+            }
+          },
+          "unit": "hour",
+          "amount": 29
+        }
+      }
+    }
+  },
+  {
+    "$match": {
+      "$expr": {
+        "$and": [
+          {
+            "$gte": [
+              "$createdAt",
+              "$filtro_inicio_utc"
+            ]
+          },
+          {
+            "$lte": [
+              "$createdAt",
+              "$filtro_fim_utc"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "$match": {
+      "$expr": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$eq": [
+                  {
+                    { comment
+                    }
+                  },
+                  "Sem"
+                ]
+              },
+              "then": {
+                "$or": [
+                  {
+                    "$eq": [
+                      "$comment",
+                      null
+                    ]
+                  },
+                  {
+                    "$eq": [
+                      "$comment",
+                      ""
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "case": {
+                "$eq": [
+                  {
+                    { comment
+                    }
+                  },
+                  "Com"
+                ]
+              },
+              "then": {
+                "$and": [
+                  {
+                    "$ne": [
+                      "$comment",
+                      null
+                    ]
+                  },
+                  {
+                    "$ne": [
+                      "$comment",
+                      ""
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "default": true
+        }
+      }
+    }
+  },
+  {
+    "$match": {
+      "$expr": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$eq": [
+                  {
+                    { response_type
+                    }
+                  },
+                  "Satisfeito"
+                ]
+              },
+              "then": {
+                "$gte": [
+                  "$score",
+                  4
+                ]
+              }
+            },
+            {
+              "case": {
+                "$eq": [
+                  {
+                    { response_type
+                    }
+                  },
+                  "Insatisfeito"
+                ]
+              },
+              "then": {
+                "$lte": [
+                  "$score",
+                  2
+                ]
+              }
+            },
+            {
+              "case": {
+                "$eq": [
+                  {
+                    { response_type
+                    }
+                  },
+                  "Neutro"
+                ]
+              },
+              "then": {
+                "$eq": [
+                  "$score",
+                  3
+                ]
+              }
+            }
+          ],
+          "default": true
+        }
+      }
+    }
+  },
+  {
+    "$sort": {
+      "createdAt": -1
+    }
+  },
+  {
+    "$project": {
+      "_id": false,
+      "ID do visitante": "$visitorId",
+      "comentário": "$comment",
+      "Custo Beneficio": "$journeyEvaluations.Custo benefício",
+      "Variedade": "$journeyEvaluations.Variedade",
+      "Tempo de Espera": "$journeyEvaluations.Tempo de espera",
+      "Atendimento do Caixa": "$journeyEvaluations.Atendimento do Caixa",
+      "Formas de Pagamento": "$journeyEvaluations.Formas de Pagamento",
+      "Atendimento do Vendedor": "$journeyEvaluations.Atendimento do Vendedor",
+      "data da Avaliação": {
+        "$dateToString": {
+          "format": "%Y-%m-%d %H:%M:%S",
+          "date": "$createdAt",
+          "timezone": "America/Rio_Branco"
+        }
+      }
+    }
+  }
+]

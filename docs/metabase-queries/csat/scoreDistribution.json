@@ -1,0 +1,52 @@
+[
+  {
+    $addFields: {
+      filtro_inicio_utc: { $dateAdd: { startDate: {
+            {data_inicio
+            }
+          }, unit: "hour", amount: 5
+        }
+      },
+      filtro_fim_utc: { $dateAdd: { startDate: {
+            {data_fim
+            }
+          },    unit: "hour", amount: 29
+        }
+      }
+    }
+  },
+  {
+    $match: {
+      $expr: {
+        $and: [
+          { $gte: [
+              "$createdAt",
+              "$filtro_inicio_utc"
+            ]
+          },
+          { $lt: [
+              "$createdAt",
+              "$filtro_fim_utc"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  { $project: { notas: { $objectToArray: "$journeyEvaluations"
+      }
+    }
+  },
+  { $unwind: "$notas"
+  },
+  { $group: { _id: "$notas.v", count: { $sum: 1
+      }
+    }
+  },
+  { $project: { _id: 0, score: "$_id", count: 1
+    }
+  },
+  { $sort: { score: 1
+    }
+  }
+]
