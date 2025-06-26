@@ -34,6 +34,7 @@ func init() {
 	}
 
 	log.Println("MongoDB: ", os.Getenv("MONGODB_URL"))
+	log.Println("MongoDB Database: ", os.Getenv("MONGODB_DATABASE"))
 	connection, err := database.Connect()
 
 	if err != nil {

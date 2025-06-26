@@ -28,7 +28,7 @@ func Connect() (*MongoDB, error) {
 }
 
 func (p *MongoDB) Collection(name string) *mongo.Collection {
-	return p.client.Database("nps").Collection(name)
+	return p.client.Database(os.Getenv("MONGODB_DATABASE")).Collection(name)
 }
 
 func (p *MongoDB) Close() error {
