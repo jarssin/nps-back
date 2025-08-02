@@ -1,6 +1,7 @@
 package functions
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -13,14 +14,17 @@ import (
 
 	"github.com/jarssin/nps-back/internal/infra/database"
 	"github.com/jarssin/nps-back/internal/infra/middlewares"
+	"github.com/jarssin/nps-back/pkg/mrrobot"
+	"github.com/jarssin/nps-back/pkg/person"
 	"github.com/jarssin/nps-back/pkg/survey"
 	"github.com/jarssin/nps-back/pkg/survey/csat"
 	"github.com/jarssin/nps-back/pkg/survey/nps"
 )
 
 var (
-	npsService  survey.SurveyServiceI
-	csatService survey.SurveyServiceI
+	npsService    survey.SurveyServiceI
+	csatService   survey.SurveyServiceI
+	personService person.ServiceI
 )
 
 func init() {
@@ -46,6 +50,9 @@ func init() {
 
 	csatRepository := csat.NewSurveyRepository(connection)
 	csatService = csat.NewSurveyService(csatRepository)
+
+	mrRobotClient := mrrobot.NewMrRobotClient(os.Getenv("MRROBOT_BASE_URL"))
+	personService = person.NewService(mrRobotClient)
 }
 
 func CreateSurvey(w http.ResponseWriter, r *http.Request) {
@@ -91,4 +98,37 @@ func CreateSurvey(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Survey created successfully",
 	})
+}
+
+func SendSurvey(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error parsing form: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error retrieving file: %v", err), http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	csvReader := csv.NewReader(file)
+	people, err := person.ToDTOFromCSV(csvReader)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error processing CSV: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	personService.SendSurvey(people)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(people)
 }

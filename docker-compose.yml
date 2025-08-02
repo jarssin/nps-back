@@ -1,7 +1,4 @@
-version: "3.8"
-
 # Gt0tAmFywGqSMLfx
-
 services:
   mongodb:
     image: mongo:latest
