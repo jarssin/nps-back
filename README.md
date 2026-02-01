@@ -55,7 +55,7 @@ Deploy the cloud function using the following command:
 
 ```bash
 gcloud functions deploy create-survey \
-  --runtime=go123 \
+  --runtime=go124 \
   --region=us-central1 \
   --source=. \
   --entry-point=CreateSurvey \
