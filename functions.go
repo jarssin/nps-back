@@ -126,7 +126,11 @@ func SendSurvey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	personService.SendSurvey(people)
+	chunkSize := 100
+	for i := 0; i < len(people); i += chunkSize {
+		end := min(i+chunkSize, len(people))
+		go personService.SendSurvey(people[i:end])
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
