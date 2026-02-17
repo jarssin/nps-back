@@ -11,9 +11,9 @@ type MrRobotClient struct {
 	BaseUrl    string
 }
 
-func NewMrRobotClient(baseUrl string) *MrRobotClient {
+func NewMrRobotClient(httpClient *http.Client, baseUrl string) *MrRobotClient {
 	return &MrRobotClient{
-		httpClient: &http.Client{},
+		httpClient: httpClient,
 		BaseUrl:    baseUrl,
 	}
 }

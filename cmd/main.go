@@ -11,6 +11,7 @@ import (
 func main() {
 	http.HandleFunc("/create-survey", middlewares.CorsMiddleware(functions.CreateSurvey))
 	http.HandleFunc("/send-survey", middlewares.CorsMiddleware(functions.SendSurvey))
+	http.HandleFunc("/pull-orders", middlewares.CorsMiddleware(functions.CardapioWebSubscriber))
 
 	log.Println("Server running on http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)

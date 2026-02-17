@@ -14,7 +14,9 @@ import (
 
 	"github.com/jarssin/nps-back/internal/infra/database"
 	"github.com/jarssin/nps-back/internal/infra/middlewares"
+	"github.com/jarssin/nps-back/internal/infra/providers/cardapioweb"
 	"github.com/jarssin/nps-back/pkg/mrrobot"
+	"github.com/jarssin/nps-back/pkg/ordersync"
 	"github.com/jarssin/nps-back/pkg/person"
 	"github.com/jarssin/nps-back/pkg/survey"
 	"github.com/jarssin/nps-back/pkg/survey/csat"
@@ -22,9 +24,10 @@ import (
 )
 
 var (
-	npsService    survey.SurveyServiceI
-	csatService   survey.SurveyServiceI
-	personService person.ServiceI
+	npsService         survey.SurveyServiceI
+	csatService        survey.SurveyServiceI
+	personService      person.ServiceI
+	cardapioWebService ordersync.ServiceI
 )
 
 func init() {
@@ -39,20 +42,32 @@ func init() {
 
 	log.Println("MongoDB: ", os.Getenv("MONGODB_URL"))
 	log.Println("MongoDB Database: ", os.Getenv("MONGODB_DATABASE"))
-	connection, err := database.Connect()
+	database, err := database.Connect()
 
 	if err != nil {
 		log.Printf("failed to create MongoDB client: %e", err)
 	}
 
-	npsRepository := nps.NewSurveyRepository(connection)
+	htppClient := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			MaxIdleConns:       10,
+			IdleConnTimeout:    30 * time.Second,
+			DisableCompression: true,
+		},
+	}
+
+	npsRepository := nps.NewSurveyRepository(database)
 	npsService = nps.NewSurveyService(npsRepository)
 
-	csatRepository := csat.NewSurveyRepository(connection)
+	csatRepository := csat.NewSurveyRepository(database)
 	csatService = csat.NewSurveyService(csatRepository)
 
-	mrRobotClient := mrrobot.NewMrRobotClient(os.Getenv("MRROBOT_BASE_URL"))
+	mrRobotClient := mrrobot.NewMrRobotClient(htppClient, os.Getenv("MRROBOT_BASE_URL"))
 	personService = person.NewService(mrRobotClient)
+
+	cardapiowebClient := cardapioweb.NewClient(htppClient, os.Getenv("CARDAPIOWEB_BASE_URL"), os.Getenv("CARDAPIOWEB_TOKEN"))
+	cardapioWebService = ordersync.NewService(cardapiowebClient, database)
 }
 
 func CreateSurvey(w http.ResponseWriter, r *http.Request) {
@@ -135,4 +150,24 @@ func SendSurvey(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(people)
+}
+
+func CardapioWebSubscriber(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	ctx := r.Context()
+	err := cardapioWebService.SendSurveyToLastOrders(ctx)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error sending surveys: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "CardapioWeb orders pulled successfully",
+	})
 }
