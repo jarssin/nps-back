@@ -1,6 +1,7 @@
 package cardapioweb
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -21,9 +22,9 @@ func NewClient(httpClient *http.Client, baseUrl, token string) *Client {
 	}
 }
 
-func (c *Client) PullOrders(lastCallDate string) ([]OrderDTO, error) {
+func (c *Client) PullOrders(ctx context.Context, lastCallDate string) ([]OrderDTO, error) {
 	url := c.baseUrl + "/api/partner/v1/orders"
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
@@ -54,8 +55,30 @@ func (c *Client) PullOrders(lastCallDate string) ([]OrderDTO, error) {
 	return orders, nil
 }
 
-func (c *Client) OrderDetails(orderID string) (OrderDetailsDTO, error) {
-	// Implement the logic to get order details from CardapioWeb using c.http, c.baseUrl, and c.token
-	// This might involve making a GET request to an endpoint with the orderID
-	return OrderDetailsDTO{}, nil
+func (c *Client) OrderDetails(ctx context.Context, orderID int64) (OrderDetailsDTO, error) {
+	url := fmt.Sprintf(c.baseUrl+"/api/partner/v1/orders/%d", orderID)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return OrderDetailsDTO{}, fmt.Errorf("error creating request: %w", err)
+	}
+
+	req.Header.Set("X-API-KEY", c.token)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return OrderDetailsDTO{}, fmt.Errorf("error fetching order details: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return OrderDetailsDTO{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var orderDetails OrderDetailsDTO
+	if err := json.NewDecoder(resp.Body).Decode(&orderDetails); err != nil {
+		return OrderDetailsDTO{}, fmt.Errorf("error decoding response: %w", err)
+	}
+
+	return orderDetails, nil
 }

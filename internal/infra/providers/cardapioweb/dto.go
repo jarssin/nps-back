@@ -23,22 +23,22 @@ type OrderDetailsDTO struct {
 }
 
 type OrderItemDTO struct {
-	ItemID       int64               `json:"item_id"`
-	OrderItemID  int64               `json:"order_item_id"`
-	ExternalCode string              `json:"external_code"`
-	Name         string              `json:"name"`
-	Quantity     int                 `json:"quantity"`
-	UnitPrice    float64             `json:"unit_price"`
-	TotalPrice   float64             `json:"total_price"`
-	Kind         string              `json:"kind"`
-	Status       string              `json:"status"`
-	Observation  string              `json:"observation"`
-	Options      []map[string]string `json:"options"`
-	Payments     []map[string]string `json:"payments"`
+	ItemID       int64   `json:"item_id"`
+	OrderItemID  int64   `json:"order_item_id"`
+	ExternalCode string  `json:"external_code"`
+	Name         string  `json:"name"`
+	Quantity     float64 `json:"quantity"`
+	UnitPrice    float64 `json:"unit_price"`
+	TotalPrice   float64 `json:"total_price"`
+	Kind         string  `json:"kind"`
+	Status       string  `json:"status"`
+	Observation  string  `json:"observation"`
+	Options      []any   `json:"options"`
+	Payments     []any   `json:"payments"`
 }
 
 type CustomerDTO struct {
-	ID    string `json:"id"`
+	ID    int64  `json:"id"`
 	Phone string `json:"phone"`
 	Name  string `json:"name"`
 }

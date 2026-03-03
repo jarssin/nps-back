@@ -11,6 +11,6 @@ type ServiceI interface {
 }
 
 type ClientI interface {
-	PullOrders(lastCallDate string) ([]cardapioweb.OrderDTO, error)
-	OrderDetails(orderID string) (cardapioweb.OrderDetailsDTO, error)
+	PullOrders(ctx context.Context, lastCallDate string) ([]cardapioweb.OrderDTO, error)
+	OrderDetails(ctx context.Context, orderID int64) (cardapioweb.OrderDetailsDTO, error)
 }

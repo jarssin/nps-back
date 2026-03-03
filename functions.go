@@ -1,6 +1,7 @@
 package functions
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -31,6 +32,7 @@ var (
 )
 
 func init() {
+	ctx := context.Background()
 	functions.HTTP("CreateSurvey", middlewares.CorsMiddleware(CreateSurvey))
 
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
@@ -42,7 +44,7 @@ func init() {
 
 	log.Println("MongoDB: ", os.Getenv("MONGODB_URL"))
 	log.Println("MongoDB Database: ", os.Getenv("MONGODB_DATABASE"))
-	database, err := database.Connect()
+	database, err := database.Connect(ctx)
 
 	if err != nil {
 		log.Printf("failed to create MongoDB client: %e", err)
@@ -64,10 +66,11 @@ func init() {
 	csatService = csat.NewSurveyService(csatRepository)
 
 	mrRobotClient := mrrobot.NewMrRobotClient(htppClient, os.Getenv("MRROBOT_BASE_URL"))
-	personService = person.NewService(mrRobotClient)
+	personRepository := person.NewRepository(database)
+	personService = person.NewService(mrRobotClient, personRepository)
 
 	cardapiowebClient := cardapioweb.NewClient(htppClient, os.Getenv("CARDAPIOWEB_BASE_URL"), os.Getenv("CARDAPIOWEB_TOKEN"))
-	cardapioWebService = ordersync.NewService(cardapiowebClient, database)
+	cardapioWebService = ordersync.NewService(cardapiowebClient, personRepository)
 }
 
 func CreateSurvey(w http.ResponseWriter, r *http.Request) {
@@ -144,12 +147,11 @@ func SendSurvey(w http.ResponseWriter, r *http.Request) {
 	chunkSize := 100
 	for i := 0; i < len(people); i += chunkSize {
 		end := min(i+chunkSize, len(people))
-		go personService.SendSurvey(people[i:end])
+		go personService.SendSurvey(context.Background(), people[i:end])
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(people)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func CardapioWebSubscriber(w http.ResponseWriter, r *http.Request) {
@@ -161,7 +163,7 @@ func CardapioWebSubscriber(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	err := cardapioWebService.SendSurveyToLastOrders(ctx)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error sending surveys: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error retrieving CardapioWeb orders: %v", err), http.StatusInternalServerError)
 		return
 	}
 

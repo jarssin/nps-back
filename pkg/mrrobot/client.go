@@ -19,7 +19,7 @@ func NewMrRobotClient(httpClient *http.Client, baseUrl string) *MrRobotClient {
 }
 
 func (c *MrRobotClient) SendMessage(body BodyToSend) error {
-	url := c.BaseUrl + "send"
+	url := c.BaseUrl + "/send"
 	jsonData, err := json.Marshal(body)
 	if err != nil {
 		return err

@@ -1,6 +1,7 @@
 package person
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"io"
@@ -8,13 +9,13 @@ import (
 )
 
 type ServiceI interface {
-	SendSurvey(people []DTO)
+	Create(ctx context.Context, person DTO) error
+	SendSurvey(ctx context.Context, people []DTO)
 }
 
 type DTO struct {
-	VisitorId string `json:"visitorId"`
-	Name      string `json:"name"`
-	Phone     string `json:"phone"`
+	Name  string `json:"name" bson:"name"`
+	Phone string `json:"phone" bson:"phone"`
 }
 
 func ToDTOFromCSV(csvReader *csv.Reader) ([]DTO, error) {
