@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 )
+
+const orderStatus = "closed"
 
 type Client struct {
 	http    *http.Client
@@ -29,13 +30,9 @@ func (c *Client) PullOrders(ctx context.Context, lastCallDate string) ([]OrderDT
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	if lastCallDate == "" {
-		lastCallDate = time.Now().Add(-23 * time.Hour).Format(time.RFC3339)
-	}
-
 	req.Header.Set("X-API-KEY", c.token)
 	req.Header.Set("Content-Type", "application/json")
-	req.URL.RawQuery = fmt.Sprintf("updated_since=%s", lastCallDate)
+	req.URL.RawQuery = fmt.Sprintf("updated_since=%s&status=%s", lastCallDate, orderStatus)
 
 	resp, err := c.http.Do(req)
 	if err != nil {

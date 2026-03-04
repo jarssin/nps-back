@@ -17,7 +17,8 @@ import (
 	"github.com/jarssin/nps-back/internal/infra/middlewares"
 	"github.com/jarssin/nps-back/internal/infra/providers/cardapioweb"
 	"github.com/jarssin/nps-back/pkg/mrrobot"
-	"github.com/jarssin/nps-back/pkg/ordersync"
+	"github.com/jarssin/nps-back/pkg/order"
+	"github.com/jarssin/nps-back/pkg/order/ordersync"
 	"github.com/jarssin/nps-back/pkg/person"
 	"github.com/jarssin/nps-back/pkg/survey"
 	"github.com/jarssin/nps-back/pkg/survey/csat"
@@ -69,8 +70,12 @@ func init() {
 	personRepository := person.NewRepository(database)
 	personService = person.NewService(mrRobotClient, personRepository)
 
+	orderSyncRepository := ordersync.NewOrderSyncRepository(database)
+
+	orderRepository := order.NewRepository(database)
+
 	cardapiowebClient := cardapioweb.NewClient(htppClient, os.Getenv("CARDAPIOWEB_BASE_URL"), os.Getenv("CARDAPIOWEB_TOKEN"))
-	cardapioWebService = ordersync.NewService(cardapiowebClient, personRepository)
+	cardapioWebService = ordersync.NewService(cardapiowebClient, personRepository, orderRepository, orderSyncRepository)
 }
 
 func CreateSurvey(w http.ResponseWriter, r *http.Request) {

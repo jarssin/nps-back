@@ -1,5 +1,11 @@
 package cardapioweb
 
+import (
+	"time"
+
+	"github.com/jarssin/nps-back/pkg/order"
+)
+
 type OrderDTO struct {
 	ID           int64  `json:"id"`
 	Status       string `json:"status"`
@@ -16,8 +22,8 @@ type OrderDetailsDTO struct {
 	OrderType    string         `json:"order_type"`
 	OderTiming   string         `json:"order_timing"`
 	SalesChannel string         `json:"sales_channel"`
-	CreatedAt    string         `json:"created_at"`
-	UpdatedAt    string         `json:"updated_at"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
 	Customer     CustomerDTO    `json:"customer"`
 	Items        []OrderItemDTO `json:"items"`
 }
@@ -35,6 +41,23 @@ type OrderItemDTO struct {
 	Observation  string  `json:"observation"`
 	Options      []any   `json:"options"`
 	Payments     []any   `json:"payments"`
+}
+
+func (oItem OrderItemDTO) ToOrderItem() order.ItemDTO {
+	return order.ItemDTO{
+		ItemID:       oItem.ItemID,
+		OrderItemID:  oItem.OrderItemID,
+		ExternalCode: oItem.ExternalCode,
+		Name:         oItem.Name,
+		Quantity:     oItem.Quantity,
+		UnitPrice:    oItem.UnitPrice,
+		TotalPrice:   oItem.TotalPrice,
+		Kind:         oItem.Kind,
+		Status:       oItem.Status,
+		Observation:  oItem.Observation,
+		Options:      oItem.Options,
+		Payments:     oItem.Payments,
+	}
 }
 
 type CustomerDTO struct {
