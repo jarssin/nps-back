@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"os"
-	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -13,10 +12,7 @@ type MongoDB struct {
 	client *mongo.Client
 }
 
-func Connect() (*MongoDB, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
+func Connect(ctx context.Context) (*MongoDB, error) {
 	client, err := mongo.Connect(
 		ctx,
 		options.Client().ApplyURI(os.Getenv("MONGODB_URL")),
@@ -35,6 +31,6 @@ func (p *MongoDB) Collection(name string) *mongo.Collection {
 	return p.client.Database(os.Getenv("MONGODB_DATABASE")).Collection(name)
 }
 
-func (p *MongoDB) Close() error {
-	return p.client.Disconnect(context.Background())
+func (p *MongoDB) Close(ctx context.Context) error {
+	return p.client.Disconnect(ctx)
 }

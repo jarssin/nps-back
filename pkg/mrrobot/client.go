@@ -11,15 +11,15 @@ type MrRobotClient struct {
 	BaseUrl    string
 }
 
-func NewMrRobotClient(baseUrl string) *MrRobotClient {
+func NewMrRobotClient(httpClient *http.Client, baseUrl string) *MrRobotClient {
 	return &MrRobotClient{
-		httpClient: &http.Client{},
+		httpClient: httpClient,
 		BaseUrl:    baseUrl,
 	}
 }
 
 func (c *MrRobotClient) SendMessage(body BodyToSend) error {
-	url := c.BaseUrl + "send"
+	url := c.BaseUrl + "/send"
 	jsonData, err := json.Marshal(body)
 	if err != nil {
 		return err
