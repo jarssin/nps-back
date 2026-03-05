@@ -35,6 +35,8 @@ var (
 func init() {
 	ctx := context.Background()
 	functions.HTTP("CreateSurvey", middlewares.CorsMiddleware(CreateSurvey))
+	functions.HTTP("SendSurvey", middlewares.CorsMiddleware(SendSurvey))
+	functions.HTTP("CardapioWebSubscriber", middlewares.CorsMiddleware(CardapioWebSubscriber))
 
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
 
@@ -48,7 +50,7 @@ func init() {
 	database, err := database.Connect(ctx)
 
 	if err != nil {
-		log.Printf("failed to create MongoDB client: %e", err)
+		log.Printf("failed to create MongoDB client: %v", err)
 	}
 
 	htppClient := &http.Client{
